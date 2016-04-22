@@ -41,6 +41,18 @@ void Particles::step() {
       particles[i].p += particles[i].v;
       particles[i].v += glm::dvec3(0, -gravity, 0);
   }
+  for (int i = 0; i < solver_iterations; i++) {
+    for (int j = 0; j < particles.size(); j++) {
+      //calculate lambda_i
+
+
+
+    }
+
+
+
+
+  }
 
 }
 

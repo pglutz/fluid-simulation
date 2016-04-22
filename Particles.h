@@ -31,12 +31,17 @@ public:
 private:
     struct Particle
     {
-        glm::dvec3 p;
-        glm::dvec3 v;
+      //Particle position
+      glm::dvec3 p;
+      //Particle velocity
+      glm::dvec3 v;
+      //Temporary position
+      glm::dvec3 q;
     };
     
     std::vector<Particle> particles;
     double gravity = .0005;
+    int solver_iterations = 10;
 };
 
 #endif /* PARTICLES_H */
