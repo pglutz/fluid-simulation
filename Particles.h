@@ -23,6 +23,9 @@
 #include <math.h>
 #endif
 
+#include <iostream>
+using namespace std;
+
 class Particles {
 public:
     Particles();
@@ -32,13 +35,22 @@ private:
 
     double W_poly6(glm::dvec3 r) {
       double r2 = dot(r, r);
+      if (r2 > h2) {
+	return 0.0;
+      }
       return poly6_h9*pow((h2 - r2), 3);
     }
 
     glm::dvec3 W_spiky(glm::dvec3 r) {
       double norm_r = sqrt(dot(r, r));
+      if (norm_r > h) {
+	return glm::dvec3(0.0);
+      }
       return (spiky_h6*(h - norm_r)*(h - norm_r)/norm_r)*r;
     }
+
+    double find_lambda(int i);
+    glm::dvec3 find_delta_p(int i);
 
     struct Particle
     {
@@ -55,10 +67,13 @@ private:
     };
     
     std::vector<Particle> particles;
-    double gravity = .05;
-    int solver_iterations = 10;
-    double dt = .01;
-    double h = .01;
+    double gravity;
+    int solver_iterations;
+    double dt;
+    double h;
+    double rest;
+    double epsilon;
+
     double poly6_h9;
     double h2;
     double spiky_h6;
