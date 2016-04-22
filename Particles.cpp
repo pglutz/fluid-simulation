@@ -15,6 +15,9 @@
 
 Particles::Particles() 
 {
+    poly6_h9 = 315.0/(64.0*M_PI*pow(h, 9));
+    h2 = h*h;
+    spiky_h6 = 45.0/(M_PI*pow(h,6));
     int nx = 10;
     int ny = 10;
     int nz = 10;
@@ -37,22 +40,39 @@ Particles::Particles()
 void Particles::step() {
   //Apply gravity to the particles
   for(int i = 0; i < particles.size(); i++)
-  {    
-      particles[i].p += particles[i].v;
-      particles[i].v += glm::dvec3(0, -gravity, 0);
+  {
+    particles[i].v += dt*glm::dvec3(0, -gravity, 0);
+    particles[i].q = particles[i].p + dt*particles[i].v;
   }
+  //Constraint solving loop
   for (int i = 0; i < solver_iterations; i++) {
-    for (int j = 0; j < particles.size(); j++) {
-      //calculate lambda_i
 
+    //Calculate lambda_i
+    for (int j = 0; j < particles.size(); j++) {
+      
 
 
     }
 
+    //Calculate new positions and do collision detection
+    for (int j = 0; j < particles.size(); j++) {
+      
 
+    }
 
-
+    //Update positions
+    for (int j = 0; j < particles.size(); j++) {
+      particles[j].q += particles[i].delta_p;
+    }
   }
+
+  for (int i = 0; i < particles.size(); i++) {
+    particles[i].v = (particles[i].q - particles[i].p)/dt;
+    //TODO: Vorticity confinement and viscosity
+    
+    particles[i].p = particles[i].q;
+  }
+
 
 }
 
