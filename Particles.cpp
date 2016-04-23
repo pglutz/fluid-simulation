@@ -15,8 +15,8 @@
 
 Particles::Particles() 
 {
-    gravity = 0.0;
-    solver_iterations = 1;
+    gravity = 1.0;
+    solver_iterations = 10;
     dt = .01;
     h = .2;
     rest = 650.0;
