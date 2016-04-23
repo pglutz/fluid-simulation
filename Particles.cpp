@@ -120,7 +120,7 @@ glm::dvec3 Particles::find_delta_p(int i) {
   for (int j = 0; j < particles.size(); j++) {
     if (i != j) {
       //TODO: Add artificial pressure term
-      delta += (1.0/1000.0)*(lambda_i + particles[j].lambda)*W_spiky(q_i - particles[j].q);
+      delta += (1.0/rest)*(lambda_i + particles[j].lambda)*W_spiky(q_i - particles[j].q);
     }
   }
   return (1/rest)*delta;
