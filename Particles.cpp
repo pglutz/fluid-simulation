@@ -18,9 +18,9 @@ Particles::Particles()
     gravity = 0.0;
     solver_iterations = 1;
     dt = .01;
-    h = 1.0;
-    rest = 300.0;
-    epsilon = 1.0;
+    h = .2;
+    rest = 650.0;
+    epsilon = 0.1;
 
     poly6_h9 = 315.0/(64.0*M_PI*pow(h, 9));
     h2 = h*h;
@@ -107,12 +107,7 @@ double Particles::find_lambda(int i) {
     }
 
     nabla_C += dot(nabla_C_i, nabla_C_i);
-    //REMOVE ME
-    //std::cout << nabla_C << std::endl;
-    //int temp;
-    //std::cin >> temp;
-
-    nabla_C /= rest*rest;
+    nabla_C = nabla_C/(rest*rest);
     return -((C/rest) - 1)/(nabla_C + epsilon);
 }
 
@@ -125,7 +120,7 @@ glm::dvec3 Particles::find_delta_p(int i) {
   for (int j = 0; j < particles.size(); j++) {
     if (i != j) {
       //TODO: Add artificial pressure term
-      delta += (lambda_i + particles[j].lambda)*W_spiky(q_i - particles[j].q);
+      delta += (1.0/1000.0)*(lambda_i + particles[j].lambda)*W_spiky(q_i - particles[j].q);
     }
   }
   return (1/rest)*delta;

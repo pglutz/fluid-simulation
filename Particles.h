@@ -46,7 +46,7 @@ private:
       if (norm_r > h) {
 	return glm::dvec3(0.0);
       }
-      return (spiky_h6*(h - norm_r)*(h - norm_r)/norm_r)*r;
+      return -(spiky_h6*(h - norm_r)*(h - norm_r)/norm_r)*r;
     }
 
     double find_lambda(int i);
