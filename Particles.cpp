@@ -15,12 +15,17 @@
 
 Particles::Particles() 
 {
-    gravity = 1.0;
-    solver_iterations = 10;
-    dt = .01;
-    h = .2;
-    rest = 650.0;
-    epsilon = 0.1;
+    gravity = 0.0;
+    solver_iterations = 50;
+    dt = .0001;
+    h = .4;
+    rest = 1000.0;
+    epsilon = 0.01;
+    k = .1;
+    n = 4;
+    q = .2*h;
+    W_dq = W_poly6(glm::dvec3(q));
+    
 
     poly6_h9 = 315.0/(64.0*M_PI*pow(h, 9));
     h2 = h*h;
@@ -105,25 +110,38 @@ double Particles::find_lambda(int i) {
 	    nabla_C_i += delta_qj;
 	  }
     }
+    
+    //if (C > 1000) {
+    //std::cout << C << std::endl;
+    //int a;
+    //std::cin >> a;
+    //}
 
     nabla_C += dot(nabla_C_i, nabla_C_i);
     nabla_C = nabla_C/(rest*rest);
-    return -((C/rest) - 1)/(nabla_C + epsilon);
+    return -((C/rest) - 1.0)/(nabla_C + epsilon);
 }
 
 glm::dvec3 Particles::find_delta_p(int i) {
   double lambda_i = particles[i].lambda;
   glm::dvec3 q_i = particles[i].q;
   glm::dvec3 delta = glm::dvec3(0.0);
+  double m = 1.0;
 
   //TODO: only sum over neighbors
   for (int j = 0; j < particles.size(); j++) {
     if (i != j) {
       //TODO: Add artificial pressure term
-      delta += (1.0/rest)*(lambda_i + particles[j].lambda)*W_spiky(q_i - particles[j].q);
+      glm::dvec3 q_ij = q_i - particles[j].q;
+      double r2 = dot(q_ij, q_ij);
+      if (r2 < h2) {
+	m += 1;
+	double s = -k*pow(W_poly6(q_ij)/W_dq, n);
+	delta += (lambda_i + particles[j].lambda + s)*W_spiky(q_ij);
+      }
     }
   }
-  return (1/rest)*delta;
+  return (1.0/(m * rest))*delta;
 }
 
 void Particles::render() const

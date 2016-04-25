@@ -73,6 +73,10 @@ private:
     double h;
     double rest;
     double epsilon;
+    double k;
+    double q;
+    double W_dq;
+    double n;
 
     double poly6_h9;
     double h2;
