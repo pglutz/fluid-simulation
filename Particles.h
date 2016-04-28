@@ -31,6 +31,11 @@ public:
     Particles();
     void render() const;
     void step(); // simulate one frame
+    double gravity;
+    int solver_iterations;
+    double dt;
+    double h;
+    double rest;
 private:
 
     double W_poly6(glm::dvec3 r) {
@@ -67,11 +72,6 @@ private:
     };
     
     std::vector<Particle> particles;
-    double gravity;
-    int solver_iterations;
-    double dt;
-    double h;
-    double rest;
     double epsilon;
     double k;
     double q;

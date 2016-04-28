@@ -15,21 +15,23 @@
 
 Particles::Particles() 
 {
-    gravity = 0.0;
-    solver_iterations = 50;
+
+    //Default values
+    gravity = 10000.0;
+    solver_iterations = 10;
     dt = .0001;
     h = .4;
-    rest = 1000.0;
+    rest = 810.0;
     epsilon = 0.01;
     k = .1;
     n = 4;
     q = .2*h;
-    W_dq = W_poly6(glm::dvec3(q));
     
-
     poly6_h9 = 315.0/(64.0*M_PI*pow(h, 9));
     h2 = h*h;
     spiky_h6 = 45.0/(M_PI*pow(h,6));
+
+    W_dq = W_poly6(glm::dvec3(q));
 
     int nx = 10;
     int ny = 10;
@@ -110,12 +112,6 @@ double Particles::find_lambda(int i) {
 	    nabla_C_i += delta_qj;
 	  }
     }
-    
-    //if (C > 1000) {
-    //std::cout << C << std::endl;
-    //int a;
-    //std::cin >> a;
-    //}
 
     nabla_C += dot(nabla_C_i, nabla_C_i);
     nabla_C = nabla_C/(rest*rest);

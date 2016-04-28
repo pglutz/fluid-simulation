@@ -67,10 +67,21 @@ void keyboard(unsigned char c, int x, int y)
 int main(int argc, char** argv)
 { 
 
-  //If -a option is used then output images
+  //Options: -a for animation, -g for gravity, -iters for solver_iterations
+  //-dt for time step, -h for smoothing radius, -r for rest density 
   for (int i = 0; i < argc; i++) {
     if (strcmp(argv[i], "-a") == 0) {
       output_animation = true;
+    } else if (strcmp(argv[i], "-g") == 0 && i + 1 < argc) {
+      particles.gravity = std::stod(argv[i+1]);
+    } else if (strcmp(argv[i], "-iters") == 0 && i + 1 < argc) {
+      particles.solver_iterations = std::stoi(argv[i+1]);
+    } else if (strcmp(argv[i], "-dt") == 0 && i + 1 < argc) {
+      particles.dt = std::stod(argv[i+1]);
+    } else if (strcmp(argv[i], "-h") == 0 && i + 1 < argc) {
+      particles.h = std::stod(argv[i+1]);
+    } else if (strcmp(argv[i], "-r") == 0 && i + 1 < argc) {
+      particles.rest = std::stod(argv[i+1]);
     }
   }
 
@@ -89,7 +100,7 @@ int main(int argc, char** argv)
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
     glutInitWindowSize(width, height);
 
-    (void)glutCreateWindow("GLUT Program");
+    (void)glutCreateWindow("Fluid Simulation");
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
     glutIdleFunc(idle);
