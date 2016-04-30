@@ -23,19 +23,25 @@
 #include <math.h>
 #endif
 
+#include<sstream>
 #include <iostream>
 using namespace std;
+
+#include <tr1/unordered_map>
+using namespace std::tr1;
 
 class Particles {
 public:
     Particles();
     void render() const;
     void step(); // simulate one frame
+    void set_h(double new_h);
     double gravity;
     int solver_iterations;
     double dt;
     double h;
     double rest;
+    bool use_grid;
 private:
 
     double W_poly6(glm::dvec3 r) {
@@ -52,6 +58,13 @@ private:
 	return glm::dvec3(0.0);
       }
       return -(spiky_h6*(h - norm_r)*(h - norm_r)/norm_r)*r;
+    }
+
+    std::string round_to_str(glm::dvec3 v) {
+      std::ostringstream strs;
+      strs << floor(v.x/h) << floor(v.y/h) << floor(v.z/h);
+      std::string str = strs.str();
+      return str;
     }
 
     double find_lambda(int i);
@@ -72,6 +85,7 @@ private:
     };
     
     std::vector<Particle> particles;
+    unordered_map<std::string, std::vector<Particle>> grid;
     double epsilon;
     double k;
     double q;

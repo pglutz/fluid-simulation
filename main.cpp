@@ -79,9 +79,11 @@ int main(int argc, char** argv)
     } else if (strcmp(argv[i], "-dt") == 0 && i + 1 < argc) {
       particles.dt = std::stod(argv[i+1]);
     } else if (strcmp(argv[i], "-h") == 0 && i + 1 < argc) {
-      particles.h = std::stod(argv[i+1]);
+      particles.set_h(std::stod(argv[i+1]));
     } else if (strcmp(argv[i], "-r") == 0 && i + 1 < argc) {
       particles.rest = std::stod(argv[i+1]);
+    } else if (strcmp(argv[i], "-grid") == 0) {
+      particles.use_grid = true;
     }
   }
 
