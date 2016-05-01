@@ -31,6 +31,9 @@ public:
     Particles();
     void render() const;
     void step(); // simulate one frame
+    bool ifCollision(glm::dvec3 first_posn, Particle second);
+    void initialize_walls(int nx,int ny, int nz);
+
 private:
 
     double W_poly6(glm::dvec3 r) {
@@ -65,8 +68,21 @@ private:
       //Position change
       glm::dvec3 delta_p;
     };
+
+    struct Walls
+    {
+      //Wall normal
+      glm::dvec3 n;
+      //Wall velocity
+      glm::dvec3 v;
+      //Wall position
+      glm::dvec3 p;
+      // Wall center point 
+      glm::dvec3 p_prime;
+    };
     
     std::vector<Particle> particles;
+    std::vector<Walls> walls; // boundaries
     double gravity;
     int solver_iterations;
     double dt;

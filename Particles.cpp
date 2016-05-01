@@ -12,24 +12,25 @@
  */
 
 #include "Particles.h"
+#include <math.h>
 
 Particles::Particles() 
 {
-    gravity = 0.0;
-    solver_iterations = 50;
-    dt = .0001;
+    gravity =10.0;
+    solver_iterations = 5;
+    dt = .001;
     h = .4;
-    rest = 1000.0;
+    rest = 400.0;
     epsilon = 0.01;
     k = .1;
     n = 4;
     q = .2*h;
-    W_dq = W_poly6(glm::dvec3(q));
-    
 
     poly6_h9 = 315.0/(64.0*M_PI*pow(h, 9));
     h2 = h*h;
     spiky_h6 = 45.0/(M_PI*pow(h,6));
+    W_dq = W_poly6(glm::dvec3(q));
+    
 
     int nx = 10;
     int ny = 10;
@@ -43,11 +44,48 @@ Particles::Particles()
             {
                 Particle par;
                 par.p = glm::dvec3((x+0.5-nx*0.5)*d, (y+0.5)*d-1.0, (z+0.5-nz*0.5)*d);
-		par.v = glm::dvec3(0.0);
+                par.q = par.p; // initialize the tentative positions
+		            par.v = glm::dvec3(0.0);
                 particles.push_back(par);
             }
         }
     }
+    initialize_walls(nx,ny,nz);
+}
+
+void Particles::initialize_walls(int nx, int ny, int nz) { // assumed to start at origin and constrained to move along one direction
+    Walls bottom_wall;
+    bottom_wall.n = dvec3(0.0,1.0,0.0);
+    bottom_wall.p = dvec3(0.0,0.0,0.0);
+    bottom_wall.v = dvec3(0.0,0.0,0.0);
+    bottom_wall.p_prime = dvec3(nx*0.5,0,nz*0.5);
+    walls.push_back(bottom_wall);
+
+    // Walls left_wall;
+    // bottom_wall.n = dvec3(1.0,0.0,0.0);
+    // bottom_wall.p = dvec3(0.0,0.0,0.0);
+    // bottom_wall.v = dvec3(0.0,0.0,0.0);
+    // bottom_wall.p_prime = dvec3()
+    // walls.push_back(left_wall);
+
+    // Walls right_wall;
+    // bottom_wall.n = dvec3(-1.0,0.0,0.0);
+    // bottom_wall.p = dvec3(nx,0.0,0.0);
+    // bottom_wall.v = dvec3(0.0,0.0,0.0);
+    // walls.push_back(bottom_wall);
+
+    // Walls front_wall;
+    // bottom_wall.n = dvec3(0.0,0.0,1.0);
+    // bottom_wall.p = dvec3(0.0,0.0,0.0);
+    // bottom_wall.v = dvec3(0.0,0.0,0.0);
+    // walls.push_back(front_wall);
+
+    // Walls back_wall;
+    // bottom_wall.n = dvec3(0.0,0.0,-1.0);
+    // bottom_wall.p = dvec3(0.0,0.0,nz);
+    // bottom_wall.v = dvec3(0.0,0.0,0.0);
+    // walls.push_back(back_wall);
+
 }
 
 void Particles::step() {
@@ -68,8 +106,16 @@ void Particles::step() {
     //Calculate new positions and do collision detection
     for (int j = 0; j < particles.size(); j++) {
       particles[j].delta_p = find_delta_p(j);
+      Particles particle_j = particles[j];
       //TODO: Collision detection
-
+      for (int i = 0; i < walls.size(); ++i)
+      {
+        Walls wall_i = walls[i];
+        if (ifCollision(wall_i,particle_j,delta_p)
+        {
+          
+        }
+      }
 
     }
 
@@ -90,6 +136,26 @@ void Particles::step() {
     particles[i].p = particles[i].q;
   }
 
+
+}
+
+// std::tuple<Particle, Particle> Particles::collisionResponse(Particle one, glm::dvec3 delta_p , Particle two) {
+//   glm::dvec3 normal_collision = 
+// }
+
+bool Particles::ifCollision(Walls wall, Particle second, glm::dvec3 delta_p) {
+  dvec3 tentative_posn = second.q + (delta_p * dt);
+  double td_ref = delta_p;
+  dvec3 d = glm::normalize(delta_p);
+  double t_actual = delta_p/d ;
+  double t = dot((wall.p_prime - second.q),wall.n)/(dot(wall.n, d) );
+  if (t < 0)
+    return false;
+
+  if (t_actual > t )
+  {
+    
+  }
 
 }
 

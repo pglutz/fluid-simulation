@@ -65,7 +65,7 @@ void keyboard(unsigned char c, int x, int y)
 }
 
 int main(int argc, char** argv)
-{ 
+{
 
   //If -a option is used then output images
   for (int i = 0; i < argc; i++) {
