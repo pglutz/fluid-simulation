@@ -57,8 +57,8 @@ Particles::Particles()
             }
         }
     }
-    double x_bound_lower = (0.5-nx*0.5)*d;
-    double z_bound = (0.5 - nz*0.5)*d;
+    double x_bound_lower = (0.5-nx*0.5)*d -0.5;
+    double z_bound = (0.5 - nz*0.5)*d -0.5;
     initialize_walls(x_bound_lower,ny,z_bound,d);
 }
 
@@ -77,7 +77,7 @@ void Particles::initialize_walls(int nx, int ny, int nz, double d) {// constrain
     Walls left_wall;
     left_wall.n = glm::dvec3(0.0,0.0,1.0);
     // left_wall.p = glm::dvec3(-1.0,0.0,0.0);
-    left_wall.p = nz - 0.5;
+    left_wall.p = nz - 1.0;
     // left_wall.v = glm::dvec3(0.0,0.0,0.0);
     left_wall.degrees = 0.0;
     left_wall.ind = 2;
@@ -87,7 +87,7 @@ void Particles::initialize_walls(int nx, int ny, int nz, double d) {// constrain
     Walls right_wall;
     right_wall.n = glm::dvec3(0.0,0.0,-1.0);
     // right_wall.p = glm::dvec3(nx*2.0,0.0,0.0);
-    right_wall.p = nz +2.0;
+    right_wall.p = nz +1.0;
     // right_wall.v = glm::dvec3(0.0,0.0,0.0);
     right_wall.ind = 2;
     right_wall.degrees = 0.0;
@@ -97,7 +97,7 @@ void Particles::initialize_walls(int nx, int ny, int nz, double d) {// constrain
     Walls front_wall;
     front_wall.n = glm::dvec3(1.0,0.0,0.0);
     // front_wall.p = glm::dvec3(0.0,0.0,0.0);
-    front_wall.p =nx - 0.5;
+    front_wall.p =nx - 1.0;
     // front_wall.v = glm::dvec3(0.0,0.0,0.0);
     front_wall.ind = 0;
     walls.push_back(front_wall);
