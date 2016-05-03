@@ -22,16 +22,17 @@ Particles::Particles()
 {
     //Default values
     use_grid = false;
-    gravity = 0;
+    gravity = 10;
     solver_iterations = 10;
-    dt = 1;
+    dt = .01;
     h = .4;
     rest = 810.0;
-    epsilon = 10;
+    epsilon = .01;
     k = .1;
     n = 4;
     q = .2*h;
     curr_t = 0.0;
+    c = .01;
     
     poly6_h9 = 315.0/(64.0*M_PI*pow(h, 9));
     h2 = h*h;
@@ -141,7 +142,7 @@ void Particles::step() {
   }
 
   //Hash particles to grid
-
+  /*
   if (use_grid) {
     grid.clear();
     for (int i = 0; i < particles.size(); i++) {
@@ -149,6 +150,7 @@ void Particles::step() {
       grid[key].push_back(particles[i]);
     }
   }
+  */
   
   //Constraint solving loop
   for (int i = 0; i < solver_iterations; i++) {
@@ -189,7 +191,7 @@ void Particles::step() {
    
     //Update positions
     for (int j = 0; j < particles.size(); j++) {
-      particles[j].q += (particles[j].delta_p);
+      particles[j].q += particles[j].delta_p;
     }
 
   }
@@ -199,10 +201,15 @@ void Particles::step() {
   for (int i = 0; i < particles.size(); i++) {
     //Update velocity
     particles[i].v = (particles[i].q - particles[i].p)/dt;
-    //TODO: Vorticity confinement and viscosity
+    //TODO: Vorticity confinement
     
+
+    particles[i].delta_v = viscosity(i);
     //Set position to predicted position
     particles[i].p = particles[i].q;
+  }
+  for (int i = 0; i < particles.size(); i++) {
+    particles[i].v += particles[i].delta_v;
   }
 
   curr_t += dt;
@@ -240,18 +247,39 @@ double Particles::find_lambda(int i) {
     double nabla_C = 0.0;
     glm::dvec3 nabla_C_i = glm::dvec3(0.0);
     glm::dvec3 q_i = particles[i].q;
+    particles[i].d_W.clear();
+    particles[i].W.clear();
 
-    if (!use_grid) {
-      for (int j = 0; j < particles.size(); j++) {
-	glm::dvec3 q_j = particles[j].q;
-	if (q_i != q_j) {
-	  glm::dvec3 q_ij = q_i - q_j;
-	  C += W_poly6(q_ij);
+    for (int j = 0; j < particles.size(); j++) {
+      glm::dvec3 q_j = particles[j].q;
+      if (q_i != q_j) {
+	glm::dvec3 q_ij = q_i - q_j;
+	double r2 = dot(q_ij, q_ij);
+	if (r2 < h2) {
+	  //Calculating density constraint
+	  double W = W_poly6(q_ij);
+	  C += W;
+
+	  //Store computed value of W_poly6(q_i - q_j)
+	  particles[i].W.push_back(W);
+
+	  //Calculating gradient
 	  glm::dvec3 delta_qj = W_spiky(q_ij);
 	  nabla_C += dot(delta_qj, delta_qj);
 	  nabla_C_i += delta_qj;
+
+	  //Store computed value of W_spiky(q_i - q_j)
+	  particles[i].d_W.push_back(delta_qj);
+
+	} else {
+	  particles[i].W.push_back(0);
 	}
-      }    
+      } else {
+	particles[i].W.push_back(0);
+      }
+    }  
+
+      /*  
     } else {
       for (int t = -2; t <= 2; t++) {
         for (int u = -2; u <= 2; u++) {
@@ -261,17 +289,20 @@ double Particles::find_lambda(int i) {
 	      glm::dvec3 q_j = list[j].q;
 	      if (q_i != q_j) {
 		glm::dvec3 q_ij = q_i - q_j;
-		C += W_poly6(q_ij);
-		glm::dvec3 delta_qj = W_spiky(q_ij);
-		nabla_C += dot(delta_qj, delta_qj);
-		nabla_C_i += delta_qj;
+		double r2 = dot(q_ij, q_ij);
+		if (r2 < h2) {
+		  C += W_poly6(q_ij);
+		  glm::dvec3 delta_qj = W_spiky(q_ij);
+		  nabla_C += dot(delta_qj, delta_qj);
+		  nabla_C_i += delta_qj;
+		}
 	      }
 	    }
 	  }
 	}
       }
     }
-    
+      */
 
     nabla_C += dot(nabla_C_i, nabla_C_i);
     nabla_C = nabla_C/(rest*rest);
@@ -280,23 +311,19 @@ double Particles::find_lambda(int i) {
 
 glm::dvec3 Particles::find_delta_p(int i) {
   double lambda_i = particles[i].lambda;
-  glm::dvec3 q_i = particles[i].q;
   glm::dvec3 delta = glm::dvec3(0.0);
   double m = 1.0;
 
-  if (!use_grid) {
-    for (int j = 0; j < particles.size(); j++) {
-      glm::dvec3 q_j = particles[j].q;
-      if (q_i != q_j) {
-	glm::dvec3 q_ij = q_i - q_j;
-	double r2 = dot(q_ij, q_ij);
-	if (r2 < h2) {
-	  m += 1;
-	  double s = -k*pow(W_poly6(q_ij)/W_dq, n);
-	  delta += (lambda_i + particles[j].lambda + s)*W_spiky(q_ij);
-	}
-      }
+  for (int j = 0; j < particles.size(); j++) {
+    double W = particles[i].W[j];
+    if (W > 0) {
+      //Artificial pressure term
+      double s = -k*pow(W/W_dq, n);
+      delta += (lambda_i + particles[j].lambda + s)*particles[i].d_W[(int) m - 1];
+      m += 1;
     }
+  }
+  /*
   } else {
     for (int t = -2; t <= 2; t++) {
       for (int u = -2; u <= 2; u++) {
@@ -318,8 +345,24 @@ glm::dvec3 Particles::find_delta_p(int i) {
       }
     }
   }
-    
-  return (1.0/(m * rest))*delta;
+  */    
+
+  return (1.0/(m*rest))*delta;
+}
+
+glm::dvec3 Particles::viscosity(int i) {
+  glm::dvec3 v_i = particles[i].v;
+  glm::dvec3 delta_v = glm::dvec3(0.0);
+  int m = 1.0;
+  for (int j = 0; j < particles.size(); j++) {
+    double W = particles[i].W[j];
+    if (W > 0) {
+      m += 1;
+      glm::dvec3 v_ij = particles[j].v - v_i;
+      delta_v += W*v_ij;
+    }
+  }
+  return (c/m)*delta_v;
 }
 
 void Particles::render() const

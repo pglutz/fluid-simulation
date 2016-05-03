@@ -59,6 +59,10 @@ public:
       double lambda;
       //Position change
       glm::dvec3 delta_p;
+      glm::dvec3 delta_v;
+      
+      std::vector<glm::dvec3> d_W;
+      std::vector<double> W;
     };
     bool ifCollision(Walls wall, Particle second, glm::dvec3 delta_p);
     // bool ifCollision_1(Walls wall, Particle second, glm::dvec3 delta_p);
@@ -94,22 +98,25 @@ private:
       return -(spiky_h6*(h - norm_r)*(h - norm_r)/norm_r)*r;
     }
 
+    /*
     std::string round_to_str(glm::dvec3 v) {
       std::ostringstream strs;
       strs << floor(v.x/h) << floor(v.y/h) << floor(v.z/h);
       std::string str = strs.str();
       return str;
     }
+    */
 
     double find_lambda(int i);
     glm::dvec3 find_delta_p(int i);
-
+    glm::dvec3 viscosity(int i);
 
     double epsilon;
     double k;
     double q;
     double W_dq;
     double n;
+    double c;
 
     double poly6_h9;
     double h2;
