@@ -13,10 +13,10 @@
 
 #include "Particles.h"
 #include <math.h>
- #include <glm/glm.hpp>
+#include <glm/glm.hpp>
 
- #define PI 3.14159265
-  #define E 2.718281828
+#define PI 3.14159265
+#define E 2.718281828
 
 Particles::Particles() 
 {
