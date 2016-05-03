@@ -23,17 +23,59 @@
 #include <math.h>
 #endif
 
+#include<sstream>
 #include <iostream>
 using namespace std;
+
+#include <tr1/unordered_map>
+using namespace std::tr1;
 
 class Particles {
 public:
     Particles();
     void render() const;
     void step(); // simulate one frame
-    bool ifCollision(glm::dvec3 first_posn, Particle second);
-    void initialize_walls(int nx,int ny, int nz);
+    struct Walls
+    {
+      //Wall normal
+      glm::dvec3 n;
+      //Wall position
+      double p;
+      // dimension
+      int ind;
+      // for moving wall
+      double degrees;
+    };
 
+    struct Particle
+    {
+      //Particle position
+      glm::dvec3 p;
+      //Particle velocity
+      glm::dvec3 v;
+      //Temporary position
+      glm::dvec3 q;
+      //Lambda for constraint solving loop
+      double lambda;
+      //Position change
+      glm::dvec3 delta_p;
+    };
+    bool ifCollision(Walls wall, Particle second, glm::dvec3 delta_p);
+    // bool ifCollision_1(Walls wall, Particle second, glm::dvec3 delta_p);
+    void initialize_walls(int nx,int ny, int nz,double d);
+
+
+    void set_h(double new_h);
+    std::vector<Walls> walls; // boundaries
+    double gravity;
+    int solver_iterations;
+    double dt;
+    double h;
+    double rest;
+    bool use_grid;
+    unordered_map<std::string, std::vector<Particle>> grid;
+    std::vector<Particle> particles;   
+    double curr_t;
 private:
 
     double W_poly6(glm::dvec3 r) {
@@ -52,42 +94,17 @@ private:
       return -(spiky_h6*(h - norm_r)*(h - norm_r)/norm_r)*r;
     }
 
+    std::string round_to_str(glm::dvec3 v) {
+      std::ostringstream strs;
+      strs << floor(v.x/h) << floor(v.y/h) << floor(v.z/h);
+      std::string str = strs.str();
+      return str;
+    }
+
     double find_lambda(int i);
     glm::dvec3 find_delta_p(int i);
 
-    struct Particle
-    {
-      //Particle position
-      glm::dvec3 p;
-      //Particle velocity
-      glm::dvec3 v;
-      //Temporary position
-      glm::dvec3 q;
-      //Lambda for constraint solving loop
-      double lambda;
-      //Position change
-      glm::dvec3 delta_p;
-    };
 
-    struct Walls
-    {
-      //Wall normal
-      glm::dvec3 n;
-      //Wall velocity
-      glm::dvec3 v;
-      //Wall position
-      glm::dvec3 p;
-      // Wall center point 
-      glm::dvec3 p_prime;
-    };
-    
-    std::vector<Particle> particles;
-    std::vector<Walls> walls; // boundaries
-    double gravity;
-    int solver_iterations;
-    double dt;
-    double h;
-    double rest;
     double epsilon;
     double k;
     double q;
