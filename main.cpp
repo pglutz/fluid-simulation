@@ -84,6 +84,8 @@ int main(int argc, char** argv)
       particles.rest = std::stod(argv[i+1]);
     } else if (strcmp(argv[i], "-grid") == 0) {
       particles.use_grid = true;
+    } else if (strcmp(argv[i], "-c") == 0 && i + 1 < argc) {
+      particles.c = std::stod(argv[i+1]);
     }
   }
 

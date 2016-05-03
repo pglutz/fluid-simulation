@@ -32,7 +32,7 @@ Particles::Particles()
     n = 4;
     q = .2*h;
     curr_t = 0.0;
-    c = .01;
+    c = .001;
     
     poly6_h9 = 315.0/(64.0*M_PI*pow(h, 9));
     h2 = h*h;
@@ -128,7 +128,7 @@ void Particles::set_h(double new_h) {
 void Particles::step() {
 
   // Moving the second wall (Simple Harmonic Motion)
-  if (curr_t > 7) {
+  if (false) { //curr_t > 7) {
   double curr_deg = walls[1].degrees;
   walls[1].degrees = curr_deg + 20;
   walls[1].p = walls[1].p + (walls[1].p*cos( curr_deg * PI / 180.0 ))*0.1;//(exp(-0.01*curr_t)); // add something that damps the oscillation with time
@@ -212,7 +212,7 @@ void Particles::step() {
     particles[i].v += particles[i].delta_v;
   }
 
-  curr_t += dt;
+  curr_t += 20*dt;
 
 }
 

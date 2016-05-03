@@ -80,6 +80,8 @@ public:
     unordered_map<std::string, std::vector<Particle>> grid;
     std::vector<Particle> particles;   
     double curr_t;
+    double c;
+
 private:
 
     double W_poly6(glm::dvec3 r) {
@@ -107,7 +109,6 @@ private:
     double q;
     double W_dq;
     double n;
-    double c;
 
     double poly6_h9;
     double h2;
