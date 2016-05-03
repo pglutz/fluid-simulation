@@ -16,6 +16,7 @@
  #include <glm/glm.hpp>
 
  #define PI 3.14159265
+  #define E 2.718281828
 
 Particles::Particles() 
 {
@@ -50,13 +51,15 @@ Particles::Particles()
             for(int z=0; z<nz; z++)
             {
               Particle par;
-              par.p = glm::dvec3((x*d), (y*d)+0.5, (z*d));
+              par.p = glm::dvec3((x+0.5-nx*0.5)*d, (y+0.5)*d-1.0, (z+0.5-nz*0.5)*d);
 	            par.v = glm::dvec3(0.0);
               particles.push_back(par);
             }
         }
     }
-    initialize_walls(nx,ny,nz,d);
+    double x_bound_lower = (0.5-nx*0.5)*d;
+    double z_bound = (0.5 - nz*0.5)*d;
+    initialize_walls(x_bound_lower,ny,z_bound,d);
 }
 
 void Particles::initialize_walls(int nx, int ny, int nz, double d) {// constrained to move along one direction
@@ -64,7 +67,7 @@ void Particles::initialize_walls(int nx, int ny, int nz, double d) {// constrain
     Walls bottom_wall;
     bottom_wall.n = glm::dvec3(0.0,1.0,0.0);
     // bottom_wall.p = glm::dvec3(0.0,-1.0,0.0);
-    bottom_wall.p = -0.5;
+    bottom_wall.p = -1.0;
     // bottom_wall.v = glm::dvec3(0.0,0.0,0.0);
     bottom_wall.ind = 1;
     bottom_wall.degrees = 0.0;
@@ -74,7 +77,7 @@ void Particles::initialize_walls(int nx, int ny, int nz, double d) {// constrain
     Walls left_wall;
     left_wall.n = glm::dvec3(0.0,0.0,1.0);
     // left_wall.p = glm::dvec3(-1.0,0.0,0.0);
-    left_wall.p = 0.5 - 0.5*(nx*d);
+    left_wall.p = nz - 0.5;
     // left_wall.v = glm::dvec3(0.0,0.0,0.0);
     left_wall.degrees = 0.0;
     left_wall.ind = 2;
@@ -84,7 +87,7 @@ void Particles::initialize_walls(int nx, int ny, int nz, double d) {// constrain
     Walls right_wall;
     right_wall.n = glm::dvec3(0.0,0.0,-1.0);
     // right_wall.p = glm::dvec3(nx*2.0,0.0,0.0);
-    right_wall.p = 1.5*(nz*d) + 0.5;
+    right_wall.p = nz +2.0;
     // right_wall.v = glm::dvec3(0.0,0.0,0.0);
     right_wall.ind = 2;
     right_wall.degrees = 0.0;
@@ -94,7 +97,7 @@ void Particles::initialize_walls(int nx, int ny, int nz, double d) {// constrain
     Walls front_wall;
     front_wall.n = glm::dvec3(1.0,0.0,0.0);
     // front_wall.p = glm::dvec3(0.0,0.0,0.0);
-    front_wall.p =0.5 - 0.5*(nx*d);
+    front_wall.p =nx - 0.5;
     // front_wall.v = glm::dvec3(0.0,0.0,0.0);
     front_wall.ind = 0;
     walls.push_back(front_wall);
@@ -103,7 +106,7 @@ void Particles::initialize_walls(int nx, int ny, int nz, double d) {// constrain
     Walls back_wall;
     back_wall.n = glm::dvec3(-1.0,0.0,0.0);
     // back_wall.p = glm::dvec3(0.0,0.0,nz*2);
-    back_wall.p = 1.5*(nx*d) + 0.5;
+    back_wall.p = nx + 1.0;
     // back_wall.v = glm::dvec3(0.0,0.0,0.0);
     back_wall.ind = 0;
     walls.push_back(back_wall);
@@ -125,9 +128,9 @@ void Particles::step() {
 
   // Moving the second wall (Simple Harmonic Motion)
   if (curr_t > 7) {
-  double curr_deg = walls[2].degrees;
-  walls[2].degrees = curr_deg + 20;
-  walls[2].p = walls[2].p + (walls[2].p*cos( curr_deg * PI / 180.0 ))*0.1;
+  double curr_deg = walls[1].degrees;
+  walls[1].degrees = curr_deg + 20;
+  walls[1].p = walls[1].p + (walls[1].p*cos( curr_deg * PI / 180.0 ))*0.1;//(exp(-0.01*curr_t)); // add something that damps the oscillation with time
   }
 
   //Apply gravity to the particles
@@ -186,7 +189,7 @@ void Particles::step() {
    
     //Update positions
     for (int j = 0; j < particles.size(); j++) {
-      particles[j].q += particles[j].delta_p;
+      particles[j].q += (particles[j].delta_p);
     }
 
   }
@@ -205,35 +208,6 @@ void Particles::step() {
   curr_t += dt;
 
 }
-
-
-// bool Particles::ifCollision_1(Walls wall, Particle second, glm::dvec3 delta_p) { // velocities and tentative positions have already been updated
-//   // FILE * pFile = fopen ("debug2.txt","a");
-
-//   glm::dvec3 prev_posn = second.p;
-//   glm::dvec3 store_delta_p = delta_p*1.0;
-//   glm::dvec3 d = glm::normalize(delta_p);
-//   double t_actual = dot(d,delta_p);
-
-//   double t = 1.0; // dot((wall.p_prime - prev_posn),wall.n)/(dot(wall.n, d) );
-//   if (t < 0)
-//     return false;
-
-//   if (t_actual > t )
-//   {
-//     second.q = prev_posn + (t*d);// return with corrected q value
-//   }
-//   else {
-//     second.q = prev_posn + (t_actual*d);
-//   }
-//   glm::dvec3 i = second.v * -1.0;
-//   second.v = 2*dot(i,wall.n)*wall.n - i;
-
-//   // fclose(pFile);
-
-//   return true;
-
-// }
 
 void Particles::reflect(Particle part, Walls wall) {
   glm::dvec3 w_i = part.p - part.q;
