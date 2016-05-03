@@ -63,7 +63,7 @@ public:
     bool ifCollision(Walls wall, Particle second, glm::dvec3 delta_p);
     // bool ifCollision_1(Walls wall, Particle second, glm::dvec3 delta_p);
     void initialize_walls(int nx,int ny, int nz,double d);
-
+    void reflect(Particle part, Walls wall);
 
     void set_h(double new_h);
     std::vector<Walls> walls; // boundaries

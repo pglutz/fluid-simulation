@@ -67,6 +67,7 @@ void Particles::initialize_walls(int nx, int ny, int nz, double d) {// constrain
     bottom_wall.p = -0.5;
     // bottom_wall.v = glm::dvec3(0.0,0.0,0.0);
     bottom_wall.ind = 1;
+    bottom_wall.degrees = 0.0;
     walls.push_back(bottom_wall);
 
 
@@ -75,6 +76,7 @@ void Particles::initialize_walls(int nx, int ny, int nz, double d) {// constrain
     // left_wall.p = glm::dvec3(-1.0,0.0,0.0);
     left_wall.p = 0.5 - 0.5*(nx*d);
     // left_wall.v = glm::dvec3(0.0,0.0,0.0);
+    left_wall.degrees = 0.0;
     left_wall.ind = 2;
     walls.push_back(left_wall);
 
@@ -168,11 +170,13 @@ void Particles::step() {
         {
           if (particles[j].q[index] < wall_i.p) {
            particles[j].q[index] = wall_i.p;
+           reflect(particles[j],wall_i);
           }
         }
         else {    //negative normal
           if (particles[j].q[index] > wall_i.p) {
-            particles[j].q[index] = wall_i.p; 
+            particles[j].q[index] = wall_i.p;
+            reflect(particles[j],wall_i);
           }
         }
       }
@@ -231,6 +235,11 @@ void Particles::step() {
 
 // }
 
+void Particles::reflect(Particle part, Walls wall) {
+  glm::dvec3 w_i = part.p - part.q;
+  glm::dvec3 w_o = 2.0*dot(w_i,wall.n)*wall.n - w_i;
+  part.q = part.q + w_o;
+}
 
 bool Particles::ifCollision(Walls wall, Particle second, glm::dvec3 delta_p) {
   glm::dvec3 tentative_posn = second.q + (delta_p * dt);
