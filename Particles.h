@@ -45,6 +45,7 @@ public:
       int ind;
       // for moving wall
       double degrees;
+      double orig;
     };
 
     struct Particle
@@ -103,6 +104,8 @@ private:
     double find_lambda(int i);
     glm::dvec3 find_delta_p(int i);
     glm::dvec3 viscosity(int i);
+    glm::dvec3 vorticity(int i);
+    glm::dvec3 find_omega(glm::dvec3 p, glm::dvec3 v);
 
     double epsilon;
     double k;

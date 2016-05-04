@@ -22,12 +22,12 @@ Particles::Particles()
 {
     //Default values
     use_grid = false;
-    gravity = 10;
+    gravity = .1;
     solver_iterations = 10;
     dt = .01;
     h = .4;
-    rest = 810.0;
-    epsilon = .01;
+    rest = 410.0;
+    epsilon = .1;
     k = .1;
     n = 4;
     q = .2*h;
@@ -82,6 +82,7 @@ void Particles::initialize_walls(int nx, int ny, int nz, double d) {// constrain
     // left_wall.v = glm::dvec3(0.0,0.0,0.0);
     left_wall.degrees = 0.0;
     left_wall.ind = 2;
+    left_wall.orig = left_wall.p;
     walls.push_back(left_wall);
 
 
@@ -128,10 +129,10 @@ void Particles::set_h(double new_h) {
 void Particles::step() {
 
   // Moving the second wall (Simple Harmonic Motion)
-  if (false) { //curr_t > 7) {
-  double curr_deg = walls[1].degrees;
-  walls[1].degrees = curr_deg + 20;
-  walls[1].p = walls[1].p + (walls[1].p*cos( curr_deg * PI / 180.0 ))*0.1;//(exp(-0.01*curr_t)); // add something that damps the oscillation with time
+  if (curr_t > 0) {
+    double curr_deg = walls[1].degrees;
+    walls[1].degrees = curr_deg + 20*dt;
+    walls[1].p = walls[1].orig + cos( curr_deg * PI / 180.0 )*0.5;//(exp(-0.01*curr_t)); // add something that damps the oscillation with time
   }
 
   //Apply gravity to the particles
@@ -175,13 +176,13 @@ void Particles::step() {
         {
           if (particles[j].q[index] < wall_i.p) {
            particles[j].q[index] = wall_i.p;
-           reflect(particles[j],wall_i);
+           //reflect(particles[j],wall_i);
           }
         }
         else {    //negative normal
           if (particles[j].q[index] > wall_i.p) {
             particles[j].q[index] = wall_i.p;
-            reflect(particles[j],wall_i);
+            //reflect(particles[j],wall_i);
           }
         }
       }
@@ -202,9 +203,9 @@ void Particles::step() {
     //Update velocity
     particles[i].v = (particles[i].q - particles[i].p)/dt;
     //TODO: Vorticity confinement
-    
+    particles[i].delta_v = dt*vorticity(i);
 
-    particles[i].delta_v = viscosity(i);
+    particles[i].delta_v += viscosity(i);
     //Set position to predicted position
     particles[i].p = particles[i].q;
   }
@@ -212,7 +213,7 @@ void Particles::step() {
     particles[i].v += particles[i].delta_v;
   }
 
-  curr_t += 20*dt;
+  curr_t += dt;
 
 }
 
@@ -350,6 +351,38 @@ glm::dvec3 Particles::find_delta_p(int i) {
   return (1.0/(m*rest))*delta;
 }
 
+glm::dvec3 Particles::vorticity(int i) {
+  glm::dvec3 p = particles[i].q;
+  glm::dvec3 v = particles[i].v;
+  glm::dvec3 omega = find_omega(p, v);
+  glm::dvec3 omega_x = find_omega(p + glm::dvec3(.00001, 0.0, 0.0), v);
+  glm::dvec3 omega_y = find_omega(p + glm::dvec3(0.0, .00001, 0.0), v);
+  glm::dvec3 omega_z = find_omega(p + glm::dvec3(0.0, 0.0, .00001), v);
+  double abs_omega = length(omega);
+  double d_x = (length(omega_x) - abs_omega)/.00001;
+  double d_y = (length(omega_y) - abs_omega)/.00001;
+  double d_z = (length(omega_z) - abs_omega)/.00001;  
+  glm::dvec3 eta = glm::dvec3(d_x, d_y, d_z);
+  return .0002*cross(normalize(eta), omega);
+}
+
+glm::dvec3 Particles::find_omega(glm::dvec3 p, glm::dvec3 v) {
+  glm::dvec3 omega = glm::dvec3(0.0);
+  for (int j = 0; j < particles.size(); j++) {
+    glm::dvec3 r = p - particles[j].q;
+    double r2 = dot(r, r);
+    if (r2 < h2 && r2 > 0) {
+      glm::dvec3 v_ij = particles[j].v - v;
+      glm::dvec3 d_Wj = -W_spiky(r);
+      omega += cross(v_ij, d_Wj);
+      if (length(omega) != length(omega)) {
+	std::cout << length(r) << std::endl;
+      }
+    }
+  }
+  return omega;
+}
+
 glm::dvec3 Particles::viscosity(int i) {
   glm::dvec3 v_i = particles[i].v;
   glm::dvec3 delta_v = glm::dvec3(0.0);
@@ -387,6 +420,27 @@ void Particles::render() const
     glColorMaterial(GL_FRONT, GL_AMBIENT);
     glColor3f(0.2, 0.5, 0.8);
     
+    
+    double lr[2] = {walls[1].p - 0.05, walls[2].p + 0.05};
+    double fb[2] = {walls[3].p - 0.05, walls[4].p + 0.05};
+    double tb[2] = {walls[0].p - 0.05, 1};
+    glLineWidth(2.5);
+    glBegin(GL_LINES);
+    for (int i = 0; i < 2; i++) {
+      for (int j = 0; j < 2; j++) {
+	for (int l = 0; l < 2; l++) {
+	  glVertex3f(fb[i], tb[j], lr[l]);
+	  glVertex3f(fb[1 - i], tb[j], lr[l]);
+	  glVertex3f(fb[i], tb[j], lr[l]);
+	  glVertex3f(fb[i], tb[1 - j], lr[l]);
+	  glVertex3f(fb[i], tb[j], lr[l]);
+	  glVertex3f(fb[i], tb[j], lr[1 - l]);
+	}
+      }
+    }
+    glEnd();
+    
+
     for(const Particle &par : particles)
     {    
         
